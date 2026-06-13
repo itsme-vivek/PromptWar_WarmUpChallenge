@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CookFlow AI - Personal Cooking Planner & To-Do List</title>
+    <meta name="description" content="Generate custom meal plans, grocery checklists, and budget evaluations based on your day using artificial intelligence.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Ambient glowing backgrounds -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation & Inputs -->
+        <aside class="sidebar">
+            <div class="brand">
+                <svg class="brand-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM11 6H13V12H18V14H11V6Z" fill="currentColor"/>
+                </svg>
+                <div class="brand-text">
+                    <h1>CookFlow<span>AI</span></h1>
+                    <p>Smart Meal Orchestrator</p>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h2>Today's Vibe</h2>
+                <p class="section-desc">Describe your day to generate a customized cooking flow.</p>
+                
+                <div class="input-group">
+                    <label for="dayDescription">How is your day looking?</label>
+                    <textarea id="dayDescription" placeholder="e.g., I have back-to-back meetings from 9 to 5, then a workout. Need a quick lunch, but have 45 mins to cook a healthy dinner." rows="4"></textarea>
+                </div>
+
+                <div class="quick-templates">
+                    <span class="label-hint">Or click a template day:</span>
+                    <div class="template-grid">
+                        <button type="button" class="btn-template" data-template="busy">⚡ Busy Workday</button>
+                        <button type="button" class="btn-template" data-template="fitness">💪 Gym & Protein</button>
+                        <button type="button" class="btn-template" data-template="budget">💰 Budget Friendly</button>
+                        <button type="button" class="btn-template" data-template="relaxed">☕ Relaxed Weekend</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h2>Preferences</h2>
+                
+                <div class="input-group">
+                    <label for="dietaryPref">Dietary Restriction</label>
+                    <select id="dietaryPref">
+                        <option value="none">None (Eat Anything)</option>
+                        <option value="vegetarian">Vegetarian</option>
+                        <option value="vegan">Vegan</option>
+                        <option value="keto">Keto (Low Carb)</option>
+                        <option value="gluten-free">Gluten-Free</option>
+                        <option value="dairy-free">Dairy-Free</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <div class="label-row">
+                        <label for="budgetLimit">Target Budget ($)</label>
+                        <span id="budgetValue">$25</span>
+                    </div>
+                    <input type="range" id="budgetLimit" min="5" max="100" step="5" value="25">
+                </div>
+            </div>
+
+            <button type="button" id="btnGenerate" class="btn-primary">
+                <span class="btn-text">Generate CookFlow</span>
+                <span class="spinner hidden"></span>
+            </button>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Header Status Panel -->
+            <header class="main-header">
+                <div class="header-left">
+                    <h2 id="currentPlanTitle">Today's Cooking Schedule</h2>
+                    <p id="currentPlanMeta">Start by generating an AI meal plan or loading a saved one.</p>
+                </div>
+                <div class="header-right">
+                    <div class="api-status-badge mock" id="apiStatusBadge">
+                        <span class="indicator"></span>
+                        <span class="badge-text" id="statusText">Demo Mode</span>
+                    </div>
+                    <button id="btnSettings" class="btn-icon" title="Settings">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <div class="tabs-bar">
+                <button class="tab-btn active" data-tab="checklist">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    To-Do Checklist
+                </button>
+                <button class="tab-btn" data-tab="mealplan">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    Meal Plan & Budget
+                </button>
+                <button class="tab-btn" data-tab="history">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path></svg>
+                    Saved History
+                </button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="tab-panels">
+                
+                <!-- Checklist Tab -->
+                <div class="tab-panel active" id="panel-checklist">
+                    <div class="progress-section card">
+                        <div class="progress-meta">
+                            <span>Checklist Progress</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" id="progressBarFill"></div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" id="checklistEmptyState">
+                        <div class="empty-icon">🍳</div>
+                        <h3>No CookFlow checklist loaded</h3>
+                        <p>Fill out the sidebar parameters and click "Generate CookFlow" or choose an template to construct your interactive checklist.</p>
+                    </div>
+
+                    <!-- Checklist Container -->
+                    <div class="todo-categories hidden" id="todoCategoriesContainer">
+                        <!-- Groceries Checklist -->
+                        <div class="todo-card card">
+                            <div class="todo-card-header">
+                                <span class="category-icon">🛒</span>
+                                <h3>Grocery Shopping</h3>
+                            </div>
+                            <ul class="todo-list" id="list-grocery">
+                                <!-- Dynamic -->
+                            </ul>
+                        </div>
+
+                        <!-- Prep Checklist -->
+                        <div class="todo-card card">
+                            <div class="todo-card-header">
+                                <span class="category-icon">🔪</span>
+                                <h3>Prep Checklist</h3>
+                            </div>
+                            <ul class="todo-list" id="list-prep">
+                                <!-- Dynamic -->
+                            </ul>
+                        </div>
+
+                        <!-- Cooking Checklist -->
+                        <div class="todo-card card">
+                            <div class="todo-card-header">
+                                <span class="category-icon">🔥</span>
+                                <h3>Cooking & Execution</h3>
+                            </div>
+                            <ul class="todo-list" id="list-cooking">
+                                <!-- Dynamic -->
+                            </ul>
+                        </div>
+
+                        <!-- Custom Tasks -->
+                        <div class="todo-card card">
+                            <div class="todo-card-header">
+                                <span class="category-icon">✨</span>
+                                <h3>Custom Actions</h3>
+                            </div>
+                            <ul class="todo-list" id="list-custom">
+                                <!-- Dynamic -->
+                            </ul>
+                            <div class="add-custom-task">
+                                <input type="text" id="customTaskInput" placeholder="Add a custom step...">
+                                <button type="button" id="btnAddCustom" class="btn-sec">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Meal Plan & Budget Tab -->
+                <div class="tab-panel" id="panel-mealplan">
+                    <!-- Empty State -->
+                    <div class="empty-state" id="mealPlanEmptyState">
+                        <div class="empty-icon">🥗</div>
+                        <h3>No Meal Plan Loaded</h3>
+                        <p>Generate a plan to view recipes and budget feasibility breakdowns.</p>
+                    </div>
+
+                    <div class="mealplan-grid hidden" id="mealPlanGridContainer">
+                        <!-- Meal cards -->
+                        <div class="meal-card breakfast card">
+                            <div class="meal-badge">Breakfast</div>
+                            <div class="meal-content">
+                                <h4 id="mealBreakfastTitle">Breakfast Meal</h4>
+                            </div>
+                        </div>
+                        <div class="meal-card lunch card">
+                            <div class="meal-badge">Lunch</div>
+                            <div class="meal-content">
+                                <h4 id="mealLunchTitle">Lunch Meal</h4>
+                            </div>
+                        </div>
+                        <div class="meal-card dinner card">
+                            <div class="meal-badge">Dinner</div>
+                            <div class="meal-content">
+                                <h4 id="mealDinnerTitle">Dinner Meal</h4>
+                            </div>
+                        </div>
+
+                        <!-- Budget Feasibility Section -->
+                        <div class="budget-card card">
+                            <div class="card-header">
+                                <h3>Budget Feasibility</h3>
+                                <span id="budgetFeasibilityBadge" class="budget-badge">Evaluating...</span>
+                            </div>
+                            <div class="budget-gauge-container">
+                                <div class="budget-gauge-label">
+                                    <span class="label-lbl">Target Budget</span>
+                                    <strong id="budgetGaugeTarget">$0.00</strong>
+                                </div>
+                                <div class="budget-gauge-label">
+                                    <span class="label-lbl">Estimated Cost</span>
+                                    <strong id="budgetGaugeEstimated">$0.00</strong>
+                                </div>
+                            </div>
+                            <div class="budget-comparison-bar">
+                                <div class="comparison-bar-fill" id="budgetComparisonFill"></div>
+                            </div>
+                            <p class="budget-notes" id="budgetNotesText">No budget metrics calculated yet.</p>
+                        </div>
+
+                        <!-- Substitutions Card -->
+                        <div class="subs-card card">
+                            <h3>Smart Substitutions</h3>
+                            <div class="subs-table-wrapper">
+                                <table class="subs-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Original</th>
+                                            <th>Substitute</th>
+                                            <th>Reason</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="subsTableBody">
+                                        <!-- Dynamic -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Tab -->
+                <div class="tab-panel" id="panel-history">
+                    <div class="history-header">
+                        <h3>Saved Meal Plans</h3>
+                        <p>Select a past meal plan to load it back into the dashboard.</p>
+                    </div>
+                    
+                    <div class="history-list" id="historyListContainer">
+                        <!-- Dynamic saved plans -->
+                    </div>
+                    
+                    <div class="empty-state" id="historyEmptyState">
+                        <div class="empty-icon">📁</div>
+                        <h3>No Saved Plans</h3>
+                        <p>Any plan you generate will automatically be saved in the SQLite DB.</p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings Drawer/Modal -->
+    <div class="modal-backdrop hidden" id="settingsModal">
+        <div class="modal card">
+            <div class="modal-header">
+                <h2>App Settings</h2>
+                <button id="btnCloseSettings" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="settings-hint">Enter your Google Gemini API Key below to unlock live AI generation. If left blank, the app runs in demo mode using smart mock templates.</p>
+                
+                <div class="input-group">
+                    <label for="settingsApiKey">Gemini API Key</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="settingsApiKey" placeholder="AIzaSy...">
+                        <button type="button" id="btnToggleApiKeyVisibility" class="btn-toggle-eye">👁️</button>
+                    </div>
+                    <span class="input-help">Get a free key from <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.</span>
+                </div>
+
+                <div class="input-group">
+                    <label for="settingsDietary">Default Dietary Restriction</label>
+                    <select id="settingsDietary">
+                        <option value="none">None (Eat Anything)</option>
+                        <option value="vegetarian">Vegetarian</option>
+                        <option value="vegan">Vegan</option>
+                        <option value="keto">Keto (Low Carb)</option>
+                        <option value="gluten-free">Gluten-Free</option>
+                        <option value="dairy-free">Dairy-Free</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="settingsBudget">Default Budget ($)</label>
+                    <input type="number" id="settingsBudget" min="5" max="200" step="5" value="25">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnCancelSettings" class="btn-sec">Cancel</button>
+                <button type="button" id="btnSaveSettings" class="btn-primary">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Main JavaScript File -->
+    <script src="app.js"></script>
+</body>
+</html>
